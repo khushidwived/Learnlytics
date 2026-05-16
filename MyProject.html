@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusFlow Pro | Performance Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --brand-primary: #6366f1;
+            --brand-secondary: #4f46e5;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-dark);
+            color: #f8fafc;
+            margin: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(79, 70, 229, 0.08) 0%, transparent 40%),
+                        linear-gradient(to bottom, #0f172a, #111827);
+        }
+
+        .spatial-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+        }
+        
+        .spatial-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-3d {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            border-bottom: 4px solid #3730a3;
+            box-shadow: 0 4px 15px -5px rgba(99, 102, 241, 0.5);
+            transition: all 0.1s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-3d:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-3d:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 0px; }
+        
+        .btn-3d:disabled { 
+            opacity: 0.7; 
+            cursor: wait !important; 
+            filter: grayscale(0.2);
+            transform: translateY(2px); 
+            border-bottom-width: 0px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            border-bottom-color: #065f46 !important;
+        }
+
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .glass-input:focus { 
+            border-color: var(--brand-primary); 
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.4); }
+        }
+
+        .task-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
+
+        .category-tag {
+            font-size: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-badge {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <!-- Auth Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center p-4 z-[1000] bg-slate-950">
+        <div id="loadingSpinner" class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
+            <p class="text-xs font-bold tracking-[0.3em] text-slate-400 uppercase">System Initializing</p>
+        </div>
+        <div id="authContainer" class="hidden max-w-sm w-full spatial-card p-10 text-center border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-2xl shadow-lg">
+                <i class="fas fa-bolt text-white"></i>
+            </div>
+            <h2 class="text-3xl font-black mb-2 text-white tracking-tighter">FastFlow Pro</h2>
+            <p class="text-slate-400 text-sm mb-8 font-medium">Next-gen performance tracking for higher education.</p>
+            <button id="googleSignInBtn" class="w-full py-4 rounded-xl flex items-center justify-center space-x-3 mb-4 bg-white text-slate-950 font-bold hover:bg-slate-100 transition-all shadow-xl">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="18">
+                <span>Sign in with Google</span>
+            </button>
+            <button id="anonSignInBtn" class="w-full py-3 text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-[0.15em]">Continue as Guest</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="px-8 py-4 flex justify-between items-center sticky top-0 z-50 bg-slate-950/60 backdrop-blur-xl border-b border-white/5">
+        <div class="flex items-center space-x-3 cursor-pointer group" onclick="location.reload()">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <span class="text-xl font-black tracking-tighter uppercase italic">Fast<span class="text-indigo-400">Flow</span></span>
+        </div>
+        <div class="flex items-center space-x-8">
+            <div id="syncStatus" class="hidden md:flex items-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="pulse-dot"></span>Cloud Sync Active
+            </div>
+            <div id="userInfo" class="flex items-center space-x-4 border-l border-white/10 pl-8">
+                <div class="text-right hidden sm:block">
+                    <p id="userName" class="text-[10px] font-black text-white uppercase leading-none">User</p>
+                    <button id="logoutBtn" class="text-[9px] font-bold text-slate-500 hover:text-rose-400 transition-colors uppercase tracking-widest">Logout</button>
+                </div>
+                <img id="userPhoto" src="https://ui-avatars.com/api/?name=U&background=6366f1&color=fff" class="w-9 h-9 rounded-xl border-2 border-white/5 object-cover shadow-lg">
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 md:p-10">
+        <!-- Dashboard Header -->
+        <header class="mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div class="space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="h-1 w-8 bg-indigo-500 rounded-full"></span>
+                    <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white italic">OPERATIONAL <span class="text-indigo-500">LOG</span></h1>
+                </div>
+                <p id="liveDate" class="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500 flex items-center">
+                    <i class="far fa-clock mr-2"></i> Initializing System Clock...
+                </p>
+            </div>
+            <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-white/10 shadow-2xl">
+                <button onclick="changeTimeframe('day')" id="tab-day" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Today</button>
+                <button onclick="changeTimeframe('week')" id="tab-week" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Week</button>
+                <button onclick="changeTimeframe('month')" id="tab-month" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Month</button>
+                <button onclick="changeTimeframe('year')" id="tab-year" class="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Year</button>
+            </div>
+        </header>
+
+        <!-- Dynamic Statistics -->
+        <div id="metrics" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Side Panel -->
+            <div class="lg:col-span-4 space-y-8">
+                <!-- Distribution Chart -->
+                <div class="spatial-card p-8 flex flex-col items-center tilt-target">
+                    <div class="w-full flex justify-between items-center mb-8">
+                        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category Distribution</h3>
+                        <i class="fas fa-chart-pie text-slate-600"></i>
+                    </div>
+                    <div class="relative w-full aspect-square max-w-[220px]">
+                        <canvas id="categoryChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-5xl font-black text-white" id="totalHoursVal">0</span>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Total Hours</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Hub -->
+                <div class="spatial-card p-8 tilt-target">
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Authorize New Entry</h3>
+                    <div class="space-y-5">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Task Description</label>
+                            <input type="text" id="taskInput" placeholder="e.g. Advanced Calculus Module 3" class="glass-input w-full px-5 py-4 rounded-xl text-sm outline-none font-bold">
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Category</label>
+                            <select id="categorySelect" class="glass-input w-full px-4 py-4 rounded-xl text-xs font-bold outline-none cursor-pointer">
+                                <option value="Study">Deep Study</option>
+                                <option value="Lectures">Lecture</option>
+                                <option value="Assignment">Assignment</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Duration</label>
+                                <div class="relative">
+                                    <input type="number" id="hourInput" step="0.5" min="0.5" value="1.5" class="glass-input w-full px-4 py-4 rounded-xl text-xs font-bold outline-none">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold uppercase">Hrs</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Problems Done</label>
+                                <div class="relative">
+                                    <input type="number" id="questionInput" min="0" value="0" class="glass-input w-full px-4 py-4 rounded-xl text-xs font-bold outline-none">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold uppercase">#</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="addTaskBtn" class="w-full btn-3d py-5 rounded-xl font-black uppercase text-xs text-white tracking-[0.2em] mt-2">
+                            <span id="btnLabel">Deploy Task</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Main Analytics Graph -->
+                <div class="spatial-card p-8 tilt-target">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 id="graphTitle" class="text-xs font-black text-white uppercase tracking-widest">Efficiency Waveform</h3>
+                            <p class="text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Historical Hourly Yield</p>
+                        </div>
+                        <div class="flex items-center space-x-3 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                             <span id="timeLabel" class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Analytics Active</span>
+                             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="h-[340px] w-full">
+                        <canvas id="productivityGraph"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily List -->
+                <div class="spatial-card flex flex-col h-[550px] overflow-hidden tilt-target border-white/5">
+                    <div class="p-8 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-tight">Active Queue</h3>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Workspace resets daily at 00:00</p>
+                        </div>
+                        <button id="clearCompletedBtn" class="group flex items-center space-x-3 px-4 py-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-[10px] font-black text-slate-400 hover:text-rose-400 transition-all uppercase tracking-widest">
+                            <span id="clearLabel" class="flex items-center space-x-2">
+                                <i class="fas fa-trash-alt group-hover:rotate-12 transition-transform"></i>
+                                <span>Clear Finished</span>
+                            </span>
+                        </button>
+                    </div>
+                    <div id="taskList" class="flex-grow overflow-y-auto p-8 space-y-5 custom-scrollbar bg-slate-900/20"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, updateDoc, writeBatch, enableNetwork, disableNetwork, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1nwks3NgRl3wi3Q674xOVM5KUJC4LtRc",
+            authDomain: "tracker-a68ac.firebaseapp.com",
+            projectId: "tracker-a68ac",
+            storageBucket: "tracker-a68ac.firebasestorage.app",
+            messagingSenderId: "404201696253",
+            appId: "1:404201696253:web:f42eb6f7ce64576b10c794"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({
+                tabManager: persistentMultipleTabManager()
+            })
+        });
+
+        setPersistence(auth, browserLocalPersistence);
+
+        const appId = 'performance-engine-v4';
+        let allTasks = []; 
+        let currentTimeframe = 'week';
+        let categoryChart, lineGraph, currentUser = null;
+        let lastDayCheck = new Date().toDateString();
+        const colors = { 'Study': '#6366f1', 'Lectures': '#f43f5e', 'Assignment': '#f59e0b' };
+
+        function initRealtimeSync() {
+            if (!currentUser) return;
+            const tasksRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks');
+            
+            onSnapshot(tasksRef, snap => {
+                allTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const syncEl = document.getElementById('syncStatus');
+                if (syncEl) syncEl.classList.remove('hidden');
+                render();
+            }, (err) => {
+                console.error("Sync Error:", err);
+                const syncEl = document.getElementById('syncStatus');
+                if (syncEl) syncEl.classList.add('hidden');
+            });
+            
+            window.addEventListener('online', () => enableNetwork(db));
+            window.addEventListener('offline', () => disableNetwork(db));
+        }
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUser = user;
+                if(user.photoURL) document.getElementById('userPhoto').src = user.photoURL;
+                document.getElementById('userName').innerText = user.displayName || 'Guest Operative';
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loadingOverlay').style.display = 'none', 300);
+                initRealtimeSync();
+            } else {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+                document.getElementById('authContainer').classList.remove('hidden');
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                document.getElementById('loadingOverlay').style.opacity = '1';
+            }
+        });
+
+        function runTimeEngine() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
+            const clockEl = document.getElementById('liveDate');
+            if (clockEl) {
+                clockEl.innerHTML = `<i class="far fa-calendar-alt mr-2"></i> ${dateStr} <span class="text-indigo-500 mx-3 font-black">|</span> <span class="text-white">${timeStr}</span>`;
+            }
+            if (now.toDateString() !== lastDayCheck) {
+                lastDayCheck = now.toDateString();
+                render(); 
+            }
+        }
+        setInterval(runTimeEngine, 1000);
+
+        function applySpatialEffects() {
+            const cards = document.querySelectorAll('.tilt-target');
+            cards.forEach(card => {
+                card.onmousemove = e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = (e.clientX - rect.left - rect.width / 2) / 60;
+                    const y = -(e.clientY - rect.top - rect.height / 2) / 60;
+                    card.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${y}deg) translateY(-2px)`;
+                };
+                card.onmouseleave = () => card.style.transform = 'none';
+            });
+        }
+
+        function render() {
+            if (!currentUser) return;
+            const now = new Date();
+            const todayStr = now.toDateString();
+
+            const analyticalData = allTasks.filter(t => {
+                const createdAt = new Date(t.createdAt);
+                const diffTime = Math.abs(now - createdAt);
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                
+                if (currentTimeframe === 'day') return createdAt.toDateString() === todayStr;
+                if (currentTimeframe === 'week') return diffDays <= 7;
+                if (currentTimeframe === 'month') return diffDays <= 30;
+                if (currentTimeframe === 'year') return createdAt.getFullYear() === now.getFullYear();
+                return true;
+            });
+
+            const dailyQueue = allTasks.filter(t => new Date(t.createdAt).toDateString() === todayStr);
+
+            updateDisplayMetrics(analyticalData);
+            updateQueue(dailyQueue); 
+            updateDataVisuals(analyticalData);
+            applySpatialEffects();
+        }
+
+        function updateQueue(dailyQueue) {
+            const container = document.getElementById('taskList');
+            if (!container) return;
+            
+            const sorted = dailyQueue.sort((a,b) => {
+                if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+
+            if (sorted.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full opacity-40">
+                        <div class="w-20 h-20 mb-6 bg-slate-800 rounded-full flex items-center justify-center">
+                            <i class="fas fa-feather-alt text-3xl"></i>
+                        </div>
+                        <p class="text-[11px] font-black uppercase tracking-[0.3em]">No objectives logged for today</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sorted.map(t => `
+                <div class="task-item flex items-center justify-between p-6 rounded-2xl bg-white/5 border border-white/5 group ${t.completed ? 'opacity-40 grayscale-[0.5]' : ''}">
+                    <div class="flex items-center space-x-5">
+                        <button onclick="window.toggleTask('${t.id}')" class="w-7 h-7 rounded-xl border-2 border-slate-700 flex items-center justify-center transition-all ${t.completed ? 'bg-indigo-500 border-indigo-500 shadow-lg shadow-indigo-500/40' : 'hover:border-indigo-500 hover:bg-indigo-500/10'}">
+                            ${t.completed ? '<i class="fas fa-check text-[11px] text-white"></i>' : ''}
+                        </button>
+                        <div>
+                            <p class="text-sm font-bold tracking-tight ${t.completed ? 'line-through text-slate-500' : 'text-white'}">${t.text}</p>
+                            <div class="flex items-center space-x-3 mt-2">
+                                <span class="category-tag" style="color: ${colors[t.category]}; border: 1px solid ${colors[t.category]}40; background: ${colors[t.category]}15">
+                                    ${t.category}
+                                </span>
+                                <span class="text-[9px] font-black uppercase text-slate-500"><i class="far fa-hourglass mr-1"></i>${t.hours}h</span>
+                                ${t.questions > 0 ? `<span class="stat-badge"><i class="fas fa-brain mr-1"></i>${t.questions} Solved</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="window.deleteTask('${t.id}')" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-700 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateDisplayMetrics(filtered) {
+            const completedTasks = filtered.filter(t => t.completed);
+            const focusHours = completedTasks.reduce((s, t) => s + (Number(t.hours) || 0), 0);
+            const targetHours = filtered.reduce((s, t) => s + (Number(t.hours) || 0), 0);
+            const efficiency = targetHours > 0 ? Math.round((focusHours/targetHours)*100) : 0;
+            
+            const totalQuestionsEver = allTasks.reduce((s, t) => s + (Number(t.questions) || 0), 0);
+            const periodQuestions = filtered.reduce((s, t) => s + (Number(t.questions) || 0), 0);
+
+            const metricsEl = document.getElementById('metrics');
+            if (metricsEl) {
+                metricsEl.innerHTML = `
+                    <div class="spatial-card p-5 border-b-2 border-b-slate-700/50">
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Period Gross</p>
+                        <h2 class="text-2xl font-black">${targetHours.toFixed(1)}<span class="text-[10px] text-slate-600 ml-1 font-bold uppercase">hr</span></h2>
+                    </div>
+                    <div class="spatial-card p-5 border-b-2 border-b-indigo-500">
+                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Period Net</p>
+                        <h2 class="text-2xl font-black text-white">${focusHours.toFixed(1)}<span class="text-[10px] text-slate-600 ml-1 font-bold uppercase">hr</span></h2>
+                    </div>
+                    <div class="spatial-card p-5 border-b-2 border-b-emerald-500/50">
+                        <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Problems (Period)</p>
+                        <h2 class="text-2xl font-black text-white">${periodQuestions}</h2>
+                    </div>
+                    <div class="spatial-card p-5 border-b-2 border-b-indigo-400/50">
+                        <p class="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1">Grand Total Problems</p>
+                        <h2 class="text-2xl font-black text-white">${totalQuestionsEver}</h2>
+                    </div>
+                    <div class="spatial-card p-5 border-b-2 border-b-rose-500/50">
+                        <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Focus Rating</p>
+                        <h2 class="text-2xl font-black text-white">${efficiency}%</h2>
+                    </div>
+                `;
+            }
+            const totalHoursValEl = document.getElementById('totalHoursVal');
+            if (totalHoursValEl) totalHoursValEl.innerText = focusHours.toFixed(1);
+        }
+
+        window.toggleTask = async (id) => {
+            if (!currentUser) return;
+            const t = allTasks.find(x => x.id === id);
+            if (!t) return;
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', id), { completed: !t.completed });
+            } catch (e) { console.error(e); }
+        };
+
+        window.deleteTask = async (id) => {
+            if (!currentUser) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', id));
+            } catch (e) { console.error(e); }
+        };
+
+        window.changeTimeframe = (time) => {
+            currentTimeframe = time;
+            document.querySelectorAll('header button').forEach(b => {
+                const isActive = b.id === `tab-${time}`;
+                b.className = `px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30 ring-1 ring-white/20' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`;
+            });
+            const timeLabelEl = document.getElementById('timeLabel');
+            if (timeLabelEl) timeLabelEl.innerText = `${time.toUpperCase()} PERFORMANCE`;
+            render();
+        };
+
+        function updateDataVisuals(filtered) {
+            const comp = filtered.filter(t => t.completed);
+            const dist = { 'Study': 0, 'Lectures': 0, 'Assignment': 0 };
+            comp.forEach(t => {
+                dist[t.category] = (dist[t.category] || 0) + (Number(t.hours) || 0);
+            });
+            
+            if (categoryChart) {
+                categoryChart.data.datasets[0].data = [dist['Study'], dist['Lectures'], dist['Assignment']];
+                categoryChart.update();
+            }
+
+            let labels = [], data = [];
+            const now = new Date();
+
+            if (currentTimeframe === 'year') {
+                labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                data = labels.map((_, i) => comp.filter(t => new Date(t.createdAt).getMonth() === i).reduce((s,t)=>s+(Number(t.hours)||0),0));
+            } else if (currentTimeframe === 'month') {
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(now.getDate() - i);
+                    labels.push(i % 7 === 0 ? d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '');
+                    const dayHours = comp.filter(t => new Date(t.createdAt).toDateString() === d.toDateString()).reduce((s,t)=>s+(Number(t.hours)||0),0);
+                    data.push(dayHours);
+                }
+            } else if (currentTimeframe === 'day') {
+                labels = ['00:00', '06:00', '12:00', '18:00', '21:00', '23:59'];
+                data = [0,6,12,18,21,24].map(h => comp.filter(t => {
+                    const d = new Date(t.createdAt);
+                    return d.toDateString() === now.toDateString() && d.getHours() <= h;
+                }).reduce((s,t)=>s+(Number(t.hours)||0),0));
+            } else {
+                for(let i=6; i>=0; i--) {
+                    const d = new Date();
+                    d.setDate(now.getDate()-i);
+                    labels.push(d.toLocaleDateString(undefined, {weekday:'short'}));
+                    data.push(comp.filter(t => new Date(t.createdAt).toDateString() === d.toDateString()).reduce((s,t)=>s+(Number(t.hours)||0),0));
+                }
+            }
+
+            if (lineGraph) {
+                lineGraph.data.labels = labels;
+                lineGraph.data.datasets[0].data = data;
+                const maxVal = Math.max(...data, 2); 
+                lineGraph.options.scales.y.suggestedMax = Math.ceil(maxVal * 1.3);
+                lineGraph.update();
+            }
+        }
+
+        function initializeCore() {
+            const catCtx = document.getElementById('categoryChart');
+            if (catCtx) {
+                categoryChart = new Chart(catCtx, {
+                    type: 'doughnut', 
+                    data: { datasets: [{ data: [0,0,0], backgroundColor: Object.values(colors), borderWidth: 2, borderColor: '#1e293b', cutout: '82%', borderRadius: 8 }] },
+                    options: { plugins: { legend: false }, responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const graphCtx = document.getElementById('productivityGraph');
+            if (graphCtx) {
+                const ctx = graphCtx.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 340);
+                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.25)');
+                gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+
+                lineGraph = new Chart(ctx, {
+                    type: 'line', 
+                    data: { labels: [], datasets: [{ 
+                        data: [], 
+                        borderColor: '#6366f1', 
+                        borderWidth: 4, 
+                        tension: 0.4, 
+                        fill: true, 
+                        backgroundColor: gradient, 
+                        pointRadius: 6, 
+                        pointHoverRadius: 9,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }] },
+                    options: { 
+                        plugins: { legend: false }, 
+                        interaction: { intersect: false, mode: 'index' },
+                        scales: { 
+                            y: { 
+                                grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false },
+                                ticks: { color: '#475569', font: { size: 10, weight: '700' }, callback: v => v + 'h' }
+                            }, 
+                            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9, weight: '700' } } } 
+                        }, 
+                        responsive: true, maintainAspectRatio: false 
+                    }
+                });
+            }
+            runTimeEngine();
+            window.changeTimeframe('week');
+        }
+
+        document.getElementById('googleSignInBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+        document.getElementById('anonSignInBtn').onclick = () => signInAnonymously(auth);
+        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
+
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const btnLabel = document.getElementById('btnLabel');
+        const taskInput = document.getElementById('taskInput');
+        const hourInput = document.getElementById('hourInput');
+        const questionInput = document.getElementById('questionInput');
+        const categorySelect = document.getElementById('categorySelect');
+
+        let isProcessing = false;
+
+        async function handleAddTask() {
+            if (isProcessing || !currentUser) return;
+            
+            const text = taskInput.value.trim();
+            const hoursValue = parseFloat(hourInput.value);
+            const hours = isNaN(hoursValue) ? 1 : hoursValue;
+            const qCount = parseInt(questionInput.value) || 0;
+            const category = categorySelect.value;
+
+            if(!text) {
+                taskInput.classList.add('border-rose-500', 'animate-shake');
+                addTaskBtn.classList.add('animate-shake');
+                setTimeout(() => {
+                    taskInput.classList.remove('border-rose-500', 'animate-shake');
+                    addTaskBtn.classList.remove('animate-shake');
+                }, 400);
+                return;
+            }
+            
+            isProcessing = true;
+            addTaskBtn.disabled = true;
+            const originalLabel = btnLabel.innerHTML;
+            btnLabel.innerHTML = `<i class="fas fa-circle-notch animate-spin mr-2"></i> Deploying...`;
+            
+            try {
+                const timestamp = Date.now().toString();
+                const taskDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', timestamp);
+                
+                setDoc(taskDocRef, {
+                    text, 
+                    category, 
+                    hours, 
+                    questions: qCount,
+                    completed: false, 
+                    createdAt: new Date().toISOString()
+                }).catch(e => console.error("Firestore background error:", e));
+
+                btnLabel.innerHTML = `<i class="fas fa-check mr-2"></i> Authorized`;
+                addTaskBtn.classList.add('btn-success');
+                taskInput.value = '';
+                questionInput.value = '0';
+                
+                setTimeout(() => {
+                    isProcessing = false; 
+                    addTaskBtn.disabled = false;
+                    addTaskBtn.classList.remove('btn-success');
+                    btnLabel.innerHTML = originalLabel;
+                }, 1200);
+
+            } catch (err) {
+                console.error("Critical Deploy Error:", err);
+                btnLabel.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> System Error`;
+                addTaskBtn.classList.add('bg-rose-500');
+                setTimeout(() => {
+                    isProcessing = false;
+                    addTaskBtn.disabled = false;
+                    addTaskBtn.classList.remove('bg-rose-500');
+                    btnLabel.innerHTML = originalLabel;
+                }, 2000);
+            }
+        }
+
+        addTaskBtn.addEventListener('click', handleAddTask);
+        taskInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAddTask(); });
+        questionInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleAddTask(); });
+
+        document.getElementById('clearCompletedBtn').onclick = async () => {
+            if (!currentUser || isProcessing) return;
+            const todayStr = new Date().toDateString();
+            const toDelete = allTasks.filter(t => t.completed && new Date(t.createdAt).toDateString() === todayStr);
+            
+            if (toDelete.length === 0) {
+                document.getElementById('clearCompletedBtn').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('clearCompletedBtn').classList.remove('animate-shake'), 400);
+                return;
+            }
+            
+            const clearLabel = document.getElementById('clearLabel');
+            const originalHtml = clearLabel.innerHTML;
+            
+            try {
+                isProcessing = true;
+                clearLabel.innerHTML = `<i class="fas fa-circle-notch animate-spin"></i> Processing...`;
+                const batch = writeBatch(db);
+                toDelete.forEach(t => batch.delete(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', t.id)));
+                await batch.commit();
+                clearLabel.innerHTML = `<i class="fas fa-check"></i> Purged`;
+            } catch (err) {
+                console.error("Clear Error:", err);
+            } finally {
+                setTimeout(() => { 
+                    isProcessing = false; 
+                    clearLabel.innerHTML = originalHtml; 
+                }, 1000);
+            }
+        };
+
+        initializeCore();
+    </script>
+</body>
+</html>
