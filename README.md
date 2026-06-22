@@ -1,11 +1,11 @@
-# ⚡ [Learnlytics](https://github.com/khushidwived/Learnlytics) — CampusFlow Performance Engine
+# Learnlytics — CampusFlow Performance Engine
  
-> **Next-generation academic performance tracking for higher education.**  
-> A single-file, real-time web application that helps students log study sessions, track productivity metrics, and visualize progress across customizable timeframes.
+Next-generation academic performance tracking for higher education.
+A single-file, real-time web application that helps students log study sessions, track productivity metrics, and visualize progress across customizable timeframes.
  
 ---
  
-## 📋 Table of Contents
+## Table of Contents
  
 - [Overview](#overview)
 - [Live Features](#live-features)
@@ -34,7 +34,7 @@
  
 ## Overview
  
-**[Learnlytics](https://github.com/khushidwived/Learnlytics)** (internally titled *CampusFlow Pro | Performance Engine*) is a fully self-contained, single HTML-file web application. It requires no build step, no bundler, and no server — simply open it in a browser. The app uses Firebase for user authentication and cloud data storage, Chart.js for interactive analytics, and Tailwind CSS for a polished dark-mode UI.
+Learnlytics (internally titled CampusFlow Pro | Performance Engine) is a fully self-contained, single HTML-file web application. It requires no build step, no bundler, and no server — simply open it in a browser. The app uses Firebase for user authentication and cloud data storage, Chart.js for interactive analytics, and Tailwind CSS for a polished dark-mode UI.
  
 Students can log academic tasks (study sessions, lectures, assignments), mark them complete, and view productivity trends over daily, weekly, monthly, and yearly timeframes.
  
@@ -44,20 +44,20 @@ Students can log academic tasks (study sessions, lectures, assignments), mark th
  
 | Feature | Description |
 |---|---|
-| 🔐 **Google Sign-In** | One-click OAuth via Firebase Authentication |
-| 👤 **Guest Mode** | Anonymous sign-in for quick access without an account |
-| ➕ **Task Logging** | Add tasks with category, duration (hours), and problems solved |
-| ✅ **Task Completion** | Toggle tasks complete/incomplete with live UI feedback |
-| 🗑️ **Task Deletion** | Delete individual tasks or bulk-clear today's completed ones |
-| 📊 **Doughnut Chart** | Category distribution (Study / Lecture / Assignment) by hours |
-| 📈 **Line Graph** | Historical hourly productivity waveform across selected timeframe |
-| 🗓️ **Timeframe Filtering** | Filter all analytics by Day, Week, Month, or Year |
-| 📡 **Real-Time Sync** | Firestore `onSnapshot` listener keeps data live across devices/tabs |
-| 📴 **Offline Mode** | Persistent local Firestore cache keeps the app functional offline |
-| 🕐 **Live Clock** | Header displays real-time date and time, updated every second |
-| 🎯 **5 KPI Metrics** | Period Gross, Period Net hours, Period Problems, Grand Total Problems, Focus Rating % |
-| 🌐 **3D Card Tilt** | Mouse-tracked perspective tilt on every dashboard card |
-| 📱 **Responsive Design** | Mobile-first layout using Tailwind's responsive grid system |
+| Google Sign-In | One-click OAuth via Firebase Authentication |
+| Guest Mode | Anonymous sign-in for quick access without an account |
+| Task Logging | Add tasks with category, duration (hours), and problems solved |
+| Task Completion | Toggle tasks complete/incomplete with live UI feedback |
+| Task Deletion | Delete individual tasks or bulk-clear today's completed ones |
+| Doughnut Chart | Category distribution (Study / Lecture / Assignment) by hours |
+| Line Graph | Historical hourly productivity waveform across selected timeframe |
+| Timeframe Filtering | Filter all analytics by Day, Week, Month, or Year |
+| Real-Time Sync | Firestore `onSnapshot` listener keeps data live across devices/tabs |
+| Offline Mode | Persistent local Firestore cache keeps the app functional offline |
+| Live Clock | Header displays real-time date and time, updated every second |
+| 5 KPI Metrics | Period Gross, Period Net hours, Period Problems, Grand Total Problems, Focus Rating % |
+| 3D Card Tilt | Mouse-tracked perspective tilt on every dashboard card |
+| Responsive Design | Mobile-first layout using Tailwind's responsive grid system |
  
 ---
  
@@ -65,22 +65,22 @@ Students can log academic tasks (study sessions, lectures, assignments), mark th
  
 | Technology | Version | Purpose |
 |---|---|---|
-| **HTML5** | — | Application shell and markup |
-| **Tailwind CSS** | CDN | Utility-first styling and responsive layout |
-| **Font Awesome** | 6.0.0 | Icon library |
-| **Plus Jakarta Sans** | Google Fonts | Primary UI typeface |
-| **Chart.js** | 4.4.1 | Doughnut and line chart visualizations |
-| **Firebase App** | 11.6.1 | App initialization |
-| **Firebase Auth** | 11.6.1 | Google OAuth + anonymous authentication |
-| **Firebase Firestore** | 11.6.1 | NoSQL cloud database + real-time sync |
+| HTML5 | — | Application shell and markup |
+| Tailwind CSS | CDN | Utility-first styling and responsive layout |
+| Font Awesome | 6.0.0 | Icon library |
+| Plus Jakarta Sans | Google Fonts | Primary UI typeface |
+| Chart.js | 4.4.1 | Doughnut and line chart visualizations |
+| Firebase App | 11.6.1 | App initialization |
+| Firebase Auth | 11.6.1 | Google OAuth + anonymous authentication |
+| Firebase Firestore | 11.6.1 | NoSQL cloud database + real-time sync |
  
-> All dependencies are loaded via CDN. No `npm install` or build step is required.
+All dependencies are loaded via CDN. No `npm install` or build step is required.
  
 ---
  
 ## Project Structure
  
-The entire application is contained in a **single HTML file** with three logical sections:
+The entire application is contained in a single HTML file with three logical sections:
  
 ```
 Learnlytics.html
@@ -140,7 +140,7 @@ const firebaseConfig = {
  
 ### Firestore Initialization
  
-Firestore is initialized with **persistent multi-tab local caching** for offline support:
+Firestore is initialized with persistent multi-tab local caching for offline support:
  
 ```javascript
 const db = initializeFirestore(app, {
@@ -158,7 +158,7 @@ Authentication state is persisted across browser sessions using `browserLocalPer
 setPersistence(auth, browserLocalPersistence);
 ```
  
-> ⚠️ **Security Note:** If you fork this project, replace `firebaseConfig` with your own Firebase project credentials and configure Firestore Security Rules to restrict access per user UID.
+> Security Note: If you fork this project, replace `firebaseConfig` with your own Firebase project credentials and configure Firestore Security Rules to restrict access per user UID.
  
 ---
  
@@ -166,8 +166,8 @@ setPersistence(auth, browserLocalPersistence);
  
 The app uses a two-step auth overlay:
  
-1. **Loading Spinner** — Shown while Firebase checks the existing session.
-2. **Auth Container** — Revealed if no active session is found.
+1. Loading Spinner — Shown while Firebase checks the existing session.
+2. Auth Container — Revealed if no active session is found.
 ### Sign-In Options
  
 ```javascript
@@ -230,12 +230,12 @@ Where `appId = 'performance-engine-v4'` and `taskId` is a Unix timestamp string 
 ### Application-Level State
  
 ```javascript
-let allTasks = [];            // All tasks fetched from Firestore for the current user
+let allTasks = [];             // All tasks fetched from Firestore for the current user
 let currentTimeframe = 'week'; // Active filter: 'day' | 'week' | 'month' | 'year'
-let categoryChart;            // Chart.js doughnut chart instance
-let lineGraph;                // Chart.js line chart instance
-let currentUser = null;       // Firebase User object
-let lastDayCheck;             // Tracks day rollover for auto-refresh
+let categoryChart;             // Chart.js doughnut chart instance
+let lineGraph;                 // Chart.js line chart instance
+let currentUser = null;        // Firebase User object
+let lastDayCheck;              // Tracks day rollover for auto-refresh
  
 const colors = {
     'Study':      '#6366f1',   // Indigo
@@ -304,7 +304,7 @@ async function handleAddTask() {
 }
 ```
  
-- Triggered by the **Deploy Task** button click or pressing `Enter` in text/question inputs.
+- Triggered by the Deploy Task button click or pressing `Enter` in text/question inputs.
 - Optimistic UI: button state changes immediately before Firestore confirms.
 #### Toggling Completion
  
@@ -325,7 +325,7 @@ window.deleteTask = async (id) => {
  
 #### Bulk Clear Completed
  
-Uses a Firestore **batch write** to atomically delete all of today's completed tasks:
+Uses a Firestore batch write to atomically delete all of today's completed tasks:
  
 ```javascript
 const batch = writeBatch(db);
@@ -390,11 +390,11 @@ The five KPI cards rendered are:
  
 | Card | Metric |
 |---|---|
-| **Period Gross** | Total planned hours in the selected timeframe |
-| **Period Net** | Actual completed hours in the selected timeframe |
-| **Problems (Period)** | Questions/problems solved in the selected timeframe |
-| **Grand Total Problems** | All-time questions solved across every session |
-| **Focus Rating** | `(Net / Gross) * 100` — completion efficiency percentage |
+| Period Gross | Total planned hours in the selected timeframe |
+| Period Net | Actual completed hours in the selected timeframe |
+| Problems (Period) | Questions/problems solved in the selected timeframe |
+| Grand Total Problems | All-time questions solved across every session |
+| Focus Rating | `(Net / Gross) * 100` — completion efficiency percentage |
  
 ---
  
@@ -417,7 +417,7 @@ categoryChart = new Chart(catCtx, {
 ```
  
 - Displays the proportion of completed hours by category.
-- The center of the donut shows the **total net hours** value.
+- The center of the donut shows the total net hours value.
 #### Line Graph (Productivity Waveform)
  
 ```javascript
@@ -427,7 +427,7 @@ lineGraph = new Chart(ctx, {
 });
 ```
  
-**Label/data generation by timeframe:**
+Label/data generation by timeframe:
  
 | Timeframe | X-Axis Labels | Y-Axis Data |
 |---|---|---|
@@ -455,31 +455,31 @@ function applySpatialEffects() {
 }
 ```
  
-Every card with the `.tilt-target` class gets a subtle 3D perspective tilt effect that follows the user's mouse cursor. It's re-applied on every `render()` call to cover dynamically created cards.
+Every card with the `.tilt-target` class gets a subtle 3D perspective tilt effect that follows the user's mouse cursor. It is re-applied on every `render()` call to cover dynamically created cards.
  
 ---
  
 ## UI Components
  
 ### Navigation Bar
-- **Logo** — "[Learnlytics](https://github.com/khushidwived/Learnlytics)" brand mark; clicking reloads the page.
-- **Cloud Sync Badge** — Pulsing green dot shows real-time Firestore connection status.
-- **User Info** — Displays user name and avatar. Shows "Guest Operative" for anonymous users.
-- **Logout Button** — Signs out and reloads the page.
+- Logo — "Learnlytics" brand mark; clicking reloads the page.
+- Cloud Sync Badge — Pulsing green dot shows real-time Firestore connection status.
+- User Info — Displays user name and avatar. Shows "Guest Operative" for anonymous users.
+- Logout Button — Signs out and reloads the page.
 ### Auth Overlay (`#loadingOverlay`)
 - Full-screen overlay shown before authentication.
 - Transitions from a loading spinner to the login card.
 - Fades out smoothly after successful sign-in.
 ### Timeframe Tabs
-- Four tabs: **Today**, **Week**, **Month**, **Year**.
+- Four tabs: Today, Week, Month, Year.
 - Active tab is styled with an indigo background and ring highlight.
 - Calls `window.changeTimeframe(time)` which updates `currentTimeframe` and re-renders.
 ### Task Input Form
-- **Task Description** — Free-text input. Shakes with red border on empty submit.
-- **Category Select** — Dropdown: `Deep Study`, `Lecture`, `Assignment`.
-- **Duration** — Number input (step: 0.5, min: 0.5). Defaults to `1.5`.
-- **Problems Done** — Number input (min: 0). Defaults to `0`.
-- **Deploy Task Button** — 3D press-style button with spinner feedback.
+- Task Description — Free-text input. Shakes with red border on empty submit.
+- Category Select — Dropdown: Deep Study, Lecture, Assignment.
+- Duration — Number input (step: 0.5, min: 0.5). Defaults to `1.5`.
+- Problems Done — Number input (min: 0). Defaults to `0`.
+- Deploy Task Button — 3D press-style button with spinner feedback.
 ### Daily Task Queue (`#taskList`)
 - Shows only today's tasks, sorted: pending first (newest at top), completed last.
 - Each item shows: task name, category tag, hours, problems badge (if > 0).
@@ -575,32 +575,32 @@ document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => lo
  
 The app continues to function without an internet connection thanks to:
  
-1. **Persistent Local Cache** — Firestore caches all documents locally using `persistentLocalCache`.
-2. **Multi-Tab Manager** — `persistentMultipleTabManager` coordinates cache across browser tabs.
-3. **Network Listeners** — `enableNetwork` / `disableNetwork` are called on browser `online` / `offline` events to gracefully pause and resume Firestore sync.
+1. Persistent Local Cache — Firestore caches all documents locally using `persistentLocalCache`.
+2. Multi-Tab Manager — `persistentMultipleTabManager` coordinates cache across browser tabs.
+3. Network Listeners — `enableNetwork` / `disableNetwork` are called on browser `online` / `offline` events to gracefully pause and resume Firestore sync.
 Any tasks added while offline will be written to the local cache and automatically synced to Firestore when the connection is restored.
  
 ---
  
 ## Known Limitations
  
-- **No Firebase Security Rules** documented — the app relies on the per-user path structure for isolation, but Firestore Security Rules should be configured in the Firebase Console to enforce this server-side.
-- **No pagination** — All tasks for the user are loaded into memory at once. Performance may degrade with very large task histories.
-- **Single category per task** — Tasks can only belong to one of three fixed categories.
-- **No task editing** — Tasks cannot be modified after creation; only toggled or deleted.
-- **Time-based task IDs** — Using `Date.now().toString()` as document IDs could theoretically cause collisions if two tasks are created in the same millisecond (extremely unlikely in normal use).
-- **API key exposed** — The Firebase API key is client-side and visible. This is normal for Firebase web apps, but proper Firestore Security Rules and App Check should be used in production.
+- No Firebase Security Rules documented — the app relies on the per-user path structure for isolation, but Firestore Security Rules should be configured in the Firebase Console to enforce this server-side.
+- No pagination — All tasks for the user are loaded into memory at once. Performance may degrade with very large task histories.
+- Single category per task — Tasks can only belong to one of three fixed categories.
+- No task editing — Tasks cannot be modified after creation; only toggled or deleted.
+- Time-based task IDs — Using `Date.now().toString()` as document IDs could theoretically cause collisions if two tasks are created in the same millisecond (extremely unlikely in normal use).
+- API key exposed — The Firebase API key is client-side and visible. This is normal for Firebase web apps, but proper Firestore Security Rules and App Check should be used in production.
 ---
  
 ## Getting Started
  
-1. **Clone or download** the HTML file.
-2. **Open** `Learnlytics.html` directly in any modern browser — no server needed.
-3. **Sign in** with your Google account or continue as a Guest.
-4. **Start logging** your study sessions, lectures, and assignments.
-5. Use the **timeframe tabs** to review your productivity over different periods.
-> To use your own Firebase project, replace the `firebaseConfig` object with your own project's credentials from the [Firebase Console](https://console.firebase.google.com/).
+1. Clone or download the HTML file.
+2. Open `Learnlytics.html` directly in any modern browser — no server needed.
+3. Sign in with your Google account or continue as a Guest.
+4. Start logging your study sessions, lectures, and assignments.
+5. Use the timeframe tabs to review your productivity over different periods.
+To use your own Firebase project, replace the `firebaseConfig` object with your own project's credentials from the [Firebase Console](https://console.firebase.google.com/).
  
 ---
  
-*Built with ⚡ Firebase, Chart.js, and Tailwind CSS.*
+Built with Firebase, Chart.js, and Tailwind CSS.
